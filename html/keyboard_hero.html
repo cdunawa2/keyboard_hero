@@ -1,0 +1,154 @@
+<canvas id="gc" width="600" height="460"></canvas>
+<script>
+
+  p2y=p1y=40;
+  pt=10;
+  ph=100;
+  bx=by=50;
+  bd=6;
+  xv=yv=4;
+  score1=score2=0;
+  ais=2;
+  move_y_dir=0;
+  move_x_dir=0;
+  paddle_speed = 5;
+  ball_speed = 5;
+  normalization_factor = 0;
+  mouse_x = 0;
+  mouse_y = 0;
+  bam = ''
+
+  var move_dirs = {
+    37 : false,
+    38 : false,
+    39 : false,
+    40 : false,
+  };
+
+  var move_dir_magnitudes = {
+    37 : -1,
+    38 : -1,
+    39 : 1,
+    40 : 1,
+  };
+
+  the_true = false;
+
+  last_dir = {
+    'x_dir' : 1,
+    'y_dir' : 1,
+  };
+
+  window.addEventListener("keydown", keyDownHandler, false);
+  window.addEventListener("keyup", keyUpHandler, false);
+  window.addEventListener("mousemove", mouseMoveHandler, false);
+  window.addEventListener("click", mouseClickHandler, false);
+
+  window.onload=function() {
+    c=document.getElementById('gc');
+    cc=c.getContext('2d');
+    setInterval(update, 1000/30);
+  }
+
+  function keyUpHandler(e){
+    score2 = e.keyCode;
+    if (e.keyCode in move_dirs) {
+      move_dirs[e.keyCode] = false;
+      the_truth = false;
+    }
+    move_y_dir=0;
+    move_x_dir=0;
+  }
+
+  function keyDownHandler(e) {
+    score1 = e.keyCode;
+    if (e.keyCode in move_dirs) {
+      move_dirs[e.keyCode] = true;
+      if(e.keyCode == 37 || e.keyCode == 39){
+        last_dir['x_dir'] = move_dir_magnitudes[e.keyCode];
+      }
+      else {
+        last_dir['y_dir'] = move_dir_magnitudes[e.keyCode];
+      }
+      the_truth = move_dirs[e.keyCode];
+    }
+  }
+
+  function mouseMoveHandler(e) {
+    mouse_y = e.clientY;
+    mouse_x = e.clientX
+  }
+
+  function mouseClickHandler(e) {
+    if (bam != 'bam'){
+      bam = 'bam';
+    } else {
+      bam = 'boom';
+    }
+  }
+
+  function updateMovement(){
+    // X Direction
+    if (move_dirs[37] && move_dirs[39]){
+      move_x_dir = last_dir['x_dir'];
+    } else if(move_dirs[37] && !move_dirs[39]){
+      move_x_dir = move_dir_magnitudes[37];
+    } else if(!move_dirs[37] && move_dirs[39]){
+      move_x_dir = move_dir_magnitudes[39];
+    } else{
+      move_x_dir = 0;
+    }
+
+    // y Direction
+    if (move_dirs[38] && move_dirs[40]){
+      move_y_dir = last_dir['y_dir'];
+    } else if(move_dirs[38] && !move_dirs[40]){
+      move_y_dir = move_dir_magnitudes[38];
+    } else if(!move_dirs[38] && move_dirs[40]){
+      move_y_dir = move_dir_magnitudes[40];
+    } else{
+      move_y_dir = 0;
+    }
+
+    //Adjust the speed
+    normalization_factor = Math.sqrt(move_x_dir*move_x_dir + move_y_dir*move_y_dir);
+    if (normalization_factor != 0){
+      move_x_dir = move_x_dir*ball_speed/normalization_factor;
+      move_y_dir = move_y_dir*ball_speed/normalization_factor;
+    } else {
+      move_x_dir = 0;
+      move_y_dir = 0;
+    }
+  }
+
+  function update() {
+    updateMovement();
+
+    bx+=move_x_dir;
+    by+=move_y_dir;
+
+    cc.fillStyle='green';
+    cc.fillRect(0,0,c.width, c.height);
+    cc.fillStyle='white';
+
+    rotation_angle = Math.atan((mouse_y-by)/(mouse_x-bx));
+    if((mouse_x-bx) < 0){
+      rotation_angle=rotation_angle+Math.PI;
+    }
+    cc.save();
+    cc.translate(bx,by);
+    cc.rotate(rotation_angle);
+    cc.moveTo(0, 0);
+    cc.beginPath();
+    cc.arc(0, 0, bd, 0, 2*Math.PI);
+    cc.stroke();
+    cc.fill();
+    cc.fillRect(0,0+bd,10, 3);
+    cc.rotate(-rotation_angle);
+    cc.restore();
+
+    cc.fillText(score1,100,100);
+    cc.fillText(score2, c.width-100, 100);
+    cc.fillText(bam, c.width-100, 300);
+  }
+</script>
